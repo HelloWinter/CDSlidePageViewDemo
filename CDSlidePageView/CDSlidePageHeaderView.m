@@ -11,13 +11,11 @@
 #define SCREEN_WIDTH ([UIScreen mainScreen].bounds.size.width)
 #define SCREEN_HEIGHT ([UIScreen mainScreen].bounds.size.height)
 
-static CGFloat const badgeViewfont = 12;
 
 @interface CDSlidePageHeaderView ()
 
 @property (nonatomic, strong) UIScrollView *scrollView;
-@property (nonatomic, strong) NSMutableArray *buttons;//button缓冲池
-@property (nonatomic, strong) NSMutableArray *badgeViews;
+@property (nonatomic, strong) NSMutableArray *buttons;
 
 @end
 
@@ -33,6 +31,7 @@ static CGFloat const badgeViewfont = 12;
         _selectedIndex=0;
         _itemWidth=0;
         _fontSize = 15;
+        self.backgroundColor=[UIColor whiteColor];
         [self addSubview:self.scrollView];
         [self.scrollView addSubview:self.sliderView];
     }
@@ -47,13 +46,6 @@ static CGFloat const badgeViewfont = 12;
         _scrollView.bounces=NO;
     }
     return _scrollView;
-}
-
-- (NSMutableArray *)badgeViews{
-    if (_badgeViews==nil) {
-        _badgeViews=[[NSMutableArray alloc]init];
-    }
-    return _badgeViews;
 }
 
 - (NSMutableArray *)buttons{
@@ -84,27 +76,18 @@ static CGFloat const badgeViewfont = 12;
     [super layoutSubviews];
     self.scrollView.frame=self.bounds;
     
-    self.itemWidth = self.itemWidth==0 ? self.frame.size.width / self.itemTitles.count : self.itemWidth;
+    if (self.itemWidth==0) {
+        self.itemWidth = self.frame.size.width / self.itemTitles.count;
+    }else{
+        if (self.itemWidth<self.frame.size.width / self.itemTitles.count) {
+            self.itemWidth = self.frame.size.width / self.itemTitles.count;
+        }
+    }
     CGFloat itemHeight = self.frame.size.height;
-    
-    CGFloat badgeViewHeight = 15;
     for (int idx = 0; idx < self.itemTitles.count; idx ++) {
         UIButton *button = self.buttons[idx];
         button.frame = CGRectMake(self.itemWidth*idx, 0, self.itemWidth, itemHeight);
-        
-        UILabel *badgeView = self.badgeViews[idx];
-        CGSize badgeViewSize = [self sizeForText:badgeView.text preferHeight:badgeViewHeight attribute:@{NSFontAttributeName : [UIFont systemFontOfSize:badgeViewfont]}];
-        // 这里badgeView的坐标  定死了  以后情况多时   在找统一计算方法
-        NSInteger badgeMargin = 0;
-        if (self.badgeViews.count == 3 ) {
-            badgeMargin = SCREEN_WIDTH * 0.07;
-        } else if (self.badgeViews.count == 2) {
-            badgeMargin = SCREEN_WIDTH * 0.15;
-        }
-        
-        badgeView.frame = CGRectMake(CGRectGetMaxX(button.frame) - badgeMargin, CGRectGetMinY(button.frame) + 5, badgeViewSize.width + 9, badgeViewHeight);
     }
-    
     if (CGSizeEqualToSize(_sliderSize, CGSizeZero)) {
         CGRect frame=self.sliderView.frame;
         frame.size=CGSizeMake(self.itemWidth, 2.0);
@@ -116,7 +99,6 @@ static CGFloat const badgeViewfont = 12;
         frame.size=_sliderSize;
         self.sliderView.frame=frame;
     }
-    
     CGRect frame = self.sliderView.frame;
     frame.origin.y = self.frame.size.height - frame.size.height;
     self.sliderView.frame = frame;
@@ -134,23 +116,14 @@ static CGFloat const badgeViewfont = 12;
     return self.scrollView.contentSize;
 }
 
-#pragma mark - private
 - (void)reload {
     [self.buttons makeObjectsPerformSelector:@selector(removeFromSuperview)];
     if (self.itemTitles.count!=0) {
         for (int idx = 0; idx < self.itemTitles.count; idx++) {
-            [self createButtonWithIndex:idx];
-            [self createBadgeViewWithIndex:idx];
+            [self p_createButtonWithIndex:idx];
         }
     }
     [self setNeedsLayout];
-}
-
-- (void)p_titleButtonAction:(UIButton *)button {
-    if ([self.buttons containsObject:button]) {
-        NSUInteger selectedIndex = [self.buttons indexOfObject:button];
-        [self setSelectedIndex:selectedIndex];
-    }
 }
 
 - (void)setSelectedIndex:(NSUInteger)selectedIndex {
@@ -166,7 +139,20 @@ static CGFloat const badgeViewfont = 12;
                 button.selected = idx == _selectedIndex;
                 if (button.selected) {
                     self.sliderView.center = CGPointMake(CGRectGetMidX(button.frame), self.sliderView.center.y);
-                    [self.scrollView scrollRectToVisible:button.frame animated:YES];
+                    if (self.sliderView.center.x-self.scrollView.contentOffset.x<self.itemWidth) {
+                        if (self.sliderView.center.x>=SCREEN_WIDTH*0.5) {
+                            [self.scrollView setContentOffset:CGPointMake(self.sliderView.center.x-SCREEN_WIDTH*0.5, 0) animated:YES];
+                        }else{
+                            [self.scrollView setContentOffset:CGPointMake(0, 0) animated:YES];
+                        }
+                    }
+                    if ((SCREEN_WIDTH-(self.sliderView.center.x-self.scrollView.contentOffset.x))<self.itemWidth) {
+                        if ((self.scrollView.contentSize.width-self.sliderView.center.x)>=SCREEN_WIDTH*0.5) {
+                            [self.scrollView setContentOffset:CGPointMake((self.sliderView.center.x-SCREEN_WIDTH*0.5), 0) animated:YES];
+                        }else{
+                            [self.scrollView setContentOffset:CGPointMake(self.scrollView.contentSize.width-SCREEN_WIDTH, 0) animated:YES];
+                        }
+                    }
                 }
             }
         } completion:^(BOOL finished) {
@@ -178,9 +164,11 @@ static CGFloat const badgeViewfont = 12;
 }
 
 #pragma mark - private
-/// 创建按钮
-- (void)createButtonWithIndex:(NSInteger)idx{
-    UIButton *button=[self.buttons objectAtIndex:idx];
+- (void)p_createButtonWithIndex:(NSInteger)idx{
+    UIButton *button=nil;
+    if (self.buttons.count!=0 && self.buttons.count>idx) {
+        button=[self.buttons objectAtIndex:idx];
+    }
     if (!button) {
         button = [UIButton buttonWithType:UIButtonTypeCustom];
         button.titleLabel.font=[UIFont systemFontOfSize:self.fontSize];
@@ -199,31 +187,18 @@ static CGFloat const badgeViewfont = 12;
     [self.scrollView addSubview:button];
 }
 
-/// 创建badgeView
-- (void)createBadgeViewWithIndex:(NSInteger)idx{
-    UILabel *badgeView = [self.badgeViews objectAtIndex:idx];
-    if (!badgeView) {
-        badgeView = [[UILabel alloc] init];
-        badgeView.font = [UIFont systemFontOfSize:badgeViewfont];
-        badgeView.backgroundColor = [UIColor redColor];
-        badgeView.textColor = [UIColor whiteColor];
-        badgeView.textAlignment = NSTextAlignmentCenter;
-        [self.badgeViews addObject:badgeView];
-        
-        badgeView.layer.cornerRadius = 7.5;
-        badgeView.layer.masksToBounds = YES;
+- (void)p_titleButtonAction:(UIButton *)button {
+    if ([self.buttons containsObject:button]) {
+        NSUInteger selectedIndex = [self.buttons indexOfObject:button];
+        [self setSelectedIndex:selectedIndex];
     }
-    NSString *badge = [self.badgeNumbers objectAtIndex:idx];
-    badgeView.hidden = (!badge || [badge isEqualToString:@"0"] || badge.length == 0) ? YES : NO;
-    badgeView.text = badge.integerValue > 99 ? @"99+" : badge;
-    [self.scrollView addSubview:badgeView];
 }
 
 - (CGSize)sizeForText:(NSString *)text preferHeight:(CGFloat)height attribute:(NSDictionary *)attr{
     CGRect rect=[text boundingRectWithSize:CGSizeMake(MAXFLOAT, height) options:(NSStringDrawingUsesLineFragmentOrigin) attributes:attr context:nil];
     CGFloat sizeWidth=ceilf(CGRectGetWidth(rect));
-    CGFloat sizeHieght=ceilf(CGRectGetHeight(rect));
-    return CGSizeMake(sizeWidth, sizeHieght);
+    CGFloat sizeHeight=ceilf(CGRectGetHeight(rect));
+    return CGSizeMake(sizeWidth, sizeHeight);
 }
 
 @end

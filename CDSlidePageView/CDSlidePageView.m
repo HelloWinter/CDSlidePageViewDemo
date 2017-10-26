@@ -68,7 +68,6 @@
         return;
     }
     self.headerView.frame = CGRectMake(0, 0, self.frame.size.width, self.headerViewHeight);
-    
     self.bodyView.frame = CGRectMake(0, CGRectGetMaxY(self.headerView.frame), self.frame.size.width, self.frame.size.height - self.headerViewHeight);
     self.bodyView.contentSize = CGSizeMake(self.numberOfPages * self.bodyView.frame.size.width, self.bodyView.frame.size.height);
     for (int idx = 0; idx < self.contentViews.count; idx ++) {
@@ -76,7 +75,6 @@
         contentView.frame = CGRectMake(idx * self.bodyView.frame.size.width, 0, self.bodyView.frame.size.width, self.bodyView.frame.size.height);
     }
     [self.headerView setSelectedIndex:_selectIndex];
-    [self slidePageHeaderView:self.headerView willSelectButtonAtIndex:_selectIndex];
 }
 
 - (void)didMoveToSuperview {
@@ -96,16 +94,10 @@
     }
     if (self.numberOfPages==0) { return; }
     NSMutableArray *titles = [[NSMutableArray alloc] initWithCapacity:self.numberOfPages];
-    NSMutableArray *badges = [[NSMutableArray alloc] initWithCapacity:self.numberOfPages];
-
     for (int idx = 0; idx < self.numberOfPages; idx ++) {
         if (_dataSource && [_dataSource respondsToSelector:@selector(slidePageView:headerTitleAtPageIndex:)]) {
             NSString *title = [_dataSource slidePageView:self headerTitleAtPageIndex:idx];
             [titles addObject:title];
-        }
-        if (_dataSource && [_dataSource respondsToSelector:@selector(slidePageView:badgeNumbersAtPageIndex:)]) {
-            NSString *badge = [_dataSource slidePageView:self badgeNumbersAtPageIndex:idx];
-            [badges addObject:badge];
         }
         if (_dataSource && [_dataSource respondsToSelector:@selector(slidePageView:contentViewAtPageIndex:)]) {
             UIView *contentView = [_dataSource slidePageView:self contentViewAtPageIndex:idx];
@@ -114,7 +106,6 @@
         }
     }
     self.headerView.itemTitles = titles;
-    self.headerView.badgeNumbers = badges;
     [self.headerView reload];
 }
 
@@ -127,10 +118,6 @@
 }
 
 #pragma mark - CDSlidePageHeaderViewDelegate
-- (void)slidePageHeaderView:(CDSlidePageHeaderView *)headerView willSelectButtonAtIndex:(NSUInteger)index{
-    
-}
-
 - (void)slidePageHeaderView:(CDSlidePageHeaderView *)headerView didSelectButtonAtIndex:(NSUInteger)index {
     _selectIndex = index;
     CGFloat contentOffsetX = index *self.bodyView.frame.size.width;

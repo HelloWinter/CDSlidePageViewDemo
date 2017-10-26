@@ -40,7 +40,7 @@
 @property (nonatomic, assign) NSUInteger selectIndex;
 
 /**
- 头部视图高度 Default:44
+ 头部视图高度,Default:44
  */
 @property (nonatomic, assign) CGFloat headerViewHeight;
 
@@ -59,17 +59,14 @@
 - (NSUInteger)numberOfPagesInSlidePageView:(CDSlidePageView *)slidePageView;
 
 /**
- 滑动视图的子视图
- */
-- (UIView *)slidePageView:(CDSlidePageView *)slidePageView contentViewAtPageIndex:(NSUInteger)index;
-
-/**
  滑动视图与选项卡的对应Title
  */
 - (NSString *)slidePageView:(CDSlidePageView *)slidePageView headerTitleAtPageIndex:(NSUInteger)index;
 
-@optional
-- (NSString *)slidePageView:(CDSlidePageView *)slidePageView badgeNumbersAtPageIndex:(NSUInteger)index;
+/**
+ 滑动视图的子视图
+ */
+- (UIView *)slidePageView:(CDSlidePageView *)slidePageView contentViewAtPageIndex:(NSUInteger)index;
 
 @end
 

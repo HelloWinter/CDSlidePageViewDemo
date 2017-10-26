@@ -18,14 +18,9 @@
 @property (nonatomic, copy) NSArray<NSString *> *itemTitles;
 
 /**
- 每个item的宽度
+ *  每个item的宽度
  */
 @property (nonatomic, assign) CGFloat itemWidth;
-
-/**
- *  badgeNumbers 未读消息数组
- */
-@property (nonatomic, copy) NSArray<NSString *> *badgeNumbers;
 
 /**
  *  普通状态颜色,default：lightGrayColor
@@ -38,17 +33,17 @@
 @property (nonatomic, strong) UIColor *selectedColor;
 
 /**
- *  选中状态下是否显示粗体
+ *  选中状态下是否显示粗体,default: NO
  */
-@property (nonatomic, assign) BOOL isBoldFont;
+@property (nonatomic) BOOL isBoldFont;
 
 /**
- *  标题字体，default：15
+ *  item标题字体，default：15
  */
 @property (nonatomic, assign) NSInteger fontSize;
 
 /**
- *  选中索引，default:0
+ *  选中的索引，default: 0
  */
 @property (nonatomic) NSUInteger selectedIndex;
 
@@ -58,12 +53,12 @@
 @property (nonatomic, strong, readonly) UIView *sliderView;
 
 /**
- *  小滑动条size，CGSizeZero ： CGSizeMake(width, 2.0)
+ *  小滑动条size
  */
 @property (nonatomic) CGSize sliderSize;
 
 /**
- 所有item所占的大小
+ *  所有item所占的大小
  */
 @property (nonatomic, readonly) CGSize contentSize;
 
