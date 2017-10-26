@@ -67,12 +67,13 @@
     if (self.numberOfPages == 0) {
         return;
     }
-    self.headerView.frame = CGRectMake(0, 0, self.width, self.headerViewHeight);
-    self.bodyView.frame = CGRectMake(0, self.headerView.bottom, self.width, self.height - self.headerViewHeight);
-    self.bodyView.contentSize = CGSizeMake(self.numberOfPages * self.bodyView.width, self.bodyView.height);
+    self.headerView.frame = CGRectMake(0, 0, self.frame.size.width, self.headerViewHeight);
+    
+    self.bodyView.frame = CGRectMake(0, CGRectGetMaxY(self.headerView.frame), self.frame.size.width, self.frame.size.height - self.headerViewHeight);
+    self.bodyView.contentSize = CGSizeMake(self.numberOfPages * self.bodyView.frame.size.width, self.bodyView.frame.size.height);
     for (int idx = 0; idx < self.contentViews.count; idx ++) {
         UIView *contentView  = self.contentViews[idx];
-        contentView.frame = CGRectMake(idx * self.bodyView.width, 0, self.bodyView.width, self.bodyView.height);
+        contentView.frame = CGRectMake(idx * self.bodyView.frame.size.width, 0, self.bodyView.frame.size.width, self.bodyView.frame.size.height);
     }
     [self.headerView setSelectedIndex:_selectIndex];
     [self slidePageHeaderView:self.headerView willSelectButtonAtIndex:_selectIndex];
@@ -132,7 +133,7 @@
 
 - (void)slidePageHeaderView:(CDSlidePageHeaderView *)headerView didSelectButtonAtIndex:(NSUInteger)index {
     _selectIndex = index;
-    CGFloat contentOffsetX = index *self.bodyView.width;
+    CGFloat contentOffsetX = index *self.bodyView.frame.size.width;
     [self.bodyView setContentOffset:CGPointMake(contentOffsetX, 0) animated:YES];
 }
 
@@ -141,14 +142,14 @@
     if (self.bodyView == scrollView) {
         if (self.bodyView.tracking || self.bodyView.dragging || self.bodyView.decelerating) {
             CGFloat tabOffsetX = (self.bodyView.contentOffset.x / self.bodyView.contentSize.width) * self.headerView.contentSize.width;
-            self.headerView.sliderView.centerX = self.headerView.contentSize.width / self.numberOfPages * 0.5 + tabOffsetX;
+            self.headerView.sliderView.center=CGPointMake(self.headerView.contentSize.width / self.numberOfPages * 0.5 + tabOffsetX, self.headerView.sliderView.center.y);
         }
     }
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
     if (self.bodyView == scrollView) {
-        NSUInteger index = _bodyView.contentOffset.x / _bodyView.width;
+        NSUInteger index = _bodyView.contentOffset.x / _bodyView.frame.size.width;
         if (_selectIndex != index) {
             _selectIndex = index;
             [self.headerView setSelectedIndex:_selectIndex];

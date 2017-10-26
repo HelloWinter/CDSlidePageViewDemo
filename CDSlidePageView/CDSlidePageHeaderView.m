@@ -7,7 +7,9 @@
 //
 
 #import "CDSlidePageHeaderView.h"
-#import "NSString+CDEncryption.h"
+
+#define SCREEN_WIDTH ([UIScreen mainScreen].bounds.size.width)
+#define SCREEN_HEIGHT ([UIScreen mainScreen].bounds.size.height)
 
 static CGFloat const badgeViewfont = 12;
 
@@ -27,7 +29,7 @@ static CGFloat const badgeViewfont = 12;
     if (self) {
         _sliderSize = CGSizeZero;
         _normalColor = [UIColor lightGrayColor];
-        _selectedColor = rgbColor(53, 145, 252);
+        _selectedColor = [UIColor colorWithRed:53.0/255.0 green:145.0/255.0 blue:252.0/255.0 alpha:1.0];
         _selectedIndex=0;
         _itemWidth=0;
         _fontSize = 15;
@@ -82,8 +84,8 @@ static CGFloat const badgeViewfont = 12;
     [super layoutSubviews];
     self.scrollView.frame=self.bounds;
     
-    self.itemWidth = self.itemWidth==0 ? self.width / self.itemTitles.count : self.itemWidth;
-    CGFloat itemHeight = self.height;
+    self.itemWidth = self.itemWidth==0 ? self.frame.size.width / self.itemTitles.count : self.itemWidth;
+    CGFloat itemHeight = self.frame.size.height;
     
     CGFloat badgeViewHeight = 15;
     for (int idx = 0; idx < self.itemTitles.count; idx ++) {
@@ -91,7 +93,7 @@ static CGFloat const badgeViewfont = 12;
         button.frame = CGRectMake(self.itemWidth*idx, 0, self.itemWidth, itemHeight);
         
         UILabel *badgeView = self.badgeViews[idx];
-        CGSize badgeViewSize = [badgeView.text sizeWithpreferHeight:badgeViewHeight font:[UIFont systemFontOfSize:badgeViewfont]];
+        CGSize badgeViewSize = [self sizeForText:badgeView.text preferHeight:badgeViewHeight attribute:@{NSFontAttributeName : [UIFont systemFontOfSize:badgeViewfont]}];
         // 这里badgeView的坐标  定死了  以后情况多时   在找统一计算方法
         NSInteger badgeMargin = 0;
         if (self.badgeViews.count == 3 ) {
@@ -99,19 +101,26 @@ static CGFloat const badgeViewfont = 12;
         } else if (self.badgeViews.count == 2) {
             badgeMargin = SCREEN_WIDTH * 0.15;
         }
-        badgeView.frame = CGRectMake(button.right - badgeMargin, button.top + 5, badgeViewSize.width + 9, badgeViewHeight);
+        
+        badgeView.frame = CGRectMake(CGRectGetMaxX(button.frame) - badgeMargin, CGRectGetMinY(button.frame) + 5, badgeViewSize.width + 9, badgeViewHeight);
     }
     
     if (CGSizeEqualToSize(_sliderSize, CGSizeZero)) {
-        self.sliderView.size=CGSizeMake(self.itemWidth, 2.0);
+        CGRect frame=self.sliderView.frame;
+        frame.size=CGSizeMake(self.itemWidth, 2.0);
+        self.sliderView.frame=frame;
     } else {
         _sliderSize.width = MIN(_sliderSize.width, self.itemWidth);
         _sliderSize.height = MIN(_sliderSize.height, itemHeight);
-        self.sliderView.size = _sliderSize;
+        CGRect frame=self.sliderView.frame;
+        frame.size=_sliderSize;
+        self.sliderView.frame=frame;
     }
-    self.sliderView.bottom = self.height;
-    self.sliderView.centerX = self.itemWidth * (_selectedIndex+0.5f);
     
+    CGRect frame = self.sliderView.frame;
+    frame.origin.y = self.frame.size.height - frame.size.height;
+    self.sliderView.frame = frame;
+    self.sliderView.center = CGPointMake(self.itemWidth * (_selectedIndex+0.5f), self.sliderView.center.y);
     self.scrollView.contentSize=CGSizeMake(self.itemWidth*self.itemTitles.count, itemHeight);
 }
 
@@ -153,10 +162,10 @@ static CGFloat const badgeViewfont = 12;
         }
         [UIView animateWithDuration:0.25 animations:^{
             for (int idx = 0; idx < self.itemTitles.count; idx ++) {
-                UIButton *button = [self.buttons cd_safeObjectAtIndex:idx];
+                UIButton *button = [self.buttons objectAtIndex:idx];
                 button.selected = idx == _selectedIndex;
                 if (button.selected) {
-                    self.sliderView.centerX = button.centerX;
+                    self.sliderView.center = CGPointMake(CGRectGetMidX(button.frame), self.sliderView.center.y);
                     [self.scrollView scrollRectToVisible:button.frame animated:YES];
                 }
             }
@@ -171,7 +180,7 @@ static CGFloat const badgeViewfont = 12;
 #pragma mark - private
 /// 创建按钮
 - (void)createButtonWithIndex:(NSInteger)idx{
-    UIButton *button=[self.buttons cd_safeObjectAtIndex:idx];
+    UIButton *button=[self.buttons objectAtIndex:idx];
     if (!button) {
         button = [UIButton buttonWithType:UIButtonTypeCustom];
         button.titleLabel.font=[UIFont systemFontOfSize:self.fontSize];
@@ -185,14 +194,14 @@ static CGFloat const badgeViewfont = 12;
         [self.buttons addObject:button];
     }
     button.selected = (idx == _selectedIndex);
-    NSString *title = [self.itemTitles cd_safeObjectAtIndex:idx];
+    NSString *title = [self.itemTitles objectAtIndex:idx];
     [button setTitle:title forState:UIControlStateNormal];
     [self.scrollView addSubview:button];
 }
 
 /// 创建badgeView
 - (void)createBadgeViewWithIndex:(NSInteger)idx{
-    UILabel *badgeView = [self.badgeViews cd_safeObjectAtIndex:idx];
+    UILabel *badgeView = [self.badgeViews objectAtIndex:idx];
     if (!badgeView) {
         badgeView = [[UILabel alloc] init];
         badgeView.font = [UIFont systemFontOfSize:badgeViewfont];
@@ -204,9 +213,17 @@ static CGFloat const badgeViewfont = 12;
         badgeView.layer.cornerRadius = 7.5;
         badgeView.layer.masksToBounds = YES;
     }
-    NSString *badge = [self.badgeNumbers cd_safeObjectAtIndex:idx];
+    NSString *badge = [self.badgeNumbers objectAtIndex:idx];
     badgeView.hidden = (!badge || [badge isEqualToString:@"0"] || badge.length == 0) ? YES : NO;
     badgeView.text = badge.integerValue > 99 ? @"99+" : badge;
     [self.scrollView addSubview:badgeView];
 }
+
+- (CGSize)sizeForText:(NSString *)text preferHeight:(CGFloat)height attribute:(NSDictionary *)attr{
+    CGRect rect=[text boundingRectWithSize:CGSizeMake(MAXFLOAT, height) options:(NSStringDrawingUsesLineFragmentOrigin) attributes:attr context:nil];
+    CGFloat sizeWidth=ceilf(CGRectGetWidth(rect));
+    CGFloat sizeHieght=ceilf(CGRectGetHeight(rect));
+    return CGSizeMake(sizeWidth, sizeHieght);
+}
+
 @end
