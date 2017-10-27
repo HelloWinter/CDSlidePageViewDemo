@@ -8,7 +8,7 @@
 
 CDSlidePageView is a multiple page slide view。
 
-<!--<img src = ".gif">-->
+<img src = "https://raw.githubusercontent.com/HelloWinter/CDSlidePageViewDemo/master/Images/screencap.gif">
 
 ## Communication
 
