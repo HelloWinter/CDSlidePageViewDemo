@@ -41,5 +41,5 @@ $ pod install
 
 ### License
 
-CDSlidePageView is released under the MIT license. See [LICENSE](https://github.com/HelloWinter/CDSlidePageViewDemo/blob/master/LICENSE) for details.
+CDSlidePageView is released under the MIT license. See [LICENSE](https://raw.githubusercontent.com/HelloWinter/CDSlidePageViewDemo/master/LICENSE) for details.
 
