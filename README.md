@@ -1,4 +1,4 @@
-#CDSlidePageView
+##CDSlidePageView
 
 
 [![LICENSE](https://img.shields.io/badge/license-MIT-green.svg?style=flat)](https://github.com/HelloWinter/CDSlidePageViewDemo/blob/master/LICENSE)&nbsp;
@@ -10,13 +10,13 @@ CDSlidePageView is a multiple page slide view。
 
 <img src = "https://raw.githubusercontent.com/HelloWinter/CDSlidePageViewDemo/master/Images/screencap.gif">
 
-## Communication
+### Communication
 
 - If you **found a bug**, _and can provide steps to reliably reproduce it_, open an issue.
 - If you **have a feature request**, open an issue.
 - If you **want to contribute**, submit a pull request.
 
-## Installation with CocoaPods
+### Installation with CocoaPods
 
 [CocoaPods](http://cocoapods.org) is a dependency manager for Objective-C, which automates and simplifies the process of using 3rd-party libraries like CDSlidePageView in your projects. 
 
@@ -39,7 +39,7 @@ Then, run the following command:
 $ pod install
 ```
 
-## License
+### License
 
 CDSlidePageView is released under the MIT license. See [LICENSE](https://github.com/HelloWinter/CDSlidePageViewDemo/blob/master/LICENSE) for details.
 
